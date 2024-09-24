@@ -114,7 +114,7 @@ const sendEmailWithCSV = async (data) => {
 
     from: 'Business-Taskmo <info@taskmo.com>', // Your verified sender email in SendGrid
     subject: 'Referral Labs Lead Data',
-    text: 'Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today\'s Referral Labs lead data, up until 8 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team',
+    text: "Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today's Referral Labs lead data, up until 8:20 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team",
     attachments: [
       {
         content: fs.readFileSync(filePath).toString('base64'), // Convert CSV file to base64
@@ -140,7 +140,7 @@ const serverTime = new Date();
 console.log(`Server time: ${serverTime}`);
 
 // Cron job to run at 8 PM every day
-cron.schedule('30 14 * * *', async () => {
+cron.schedule('50 14 * * *', async () => {
   console.log('Running a job at 8 PM IST');
   const data = await fetchDataFromSupabase();
   if (data) {
