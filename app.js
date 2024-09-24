@@ -40,22 +40,21 @@ const fetchDataFromSupabase = async () => {
 const convertToCSV = (data) => {
   try {
     const fields = [
-      'name',
-      'empid',
-      'phonenumber',
-      'type',
-      'beneficiary_name',
-      'beneficiary_mobile',
-      'gender',
-      'dob',
-      'email',
-      'city',
-      'pincode',
-      'state',
-      'utr',
-      'payment_done',
-      'created_at',
-      'updated_at',
+      { label: 'Name', value: 'name' },
+      { label: 'Employee ID', value: 'empid' },
+      { label: 'Phone Number', value: 'phonenumber' },
+      { label: 'Type', value: 'type' },
+      { label: 'Beneficiary Name', value: 'beneficiary_name' },
+      { label: 'Beneficiary Mobile', value: 'beneficiary_mobile' },
+      { label: 'Beneficiary DOB', value: 'beneficiary_dob' },
+      { label: 'Email', value: 'email' },
+      { label: 'Gender', value: 'gender' },
+      { label: 'City', value: 'city' },
+      { label: 'Pincode', value: 'pincode' },
+      { label: 'State', value: 'state' },
+      { label: 'UTR', value: 'utr' },
+      { label: 'Payment Status', value: 'payment_done' },
+      { label: 'Created At', value: 'created_at' },
     ];
     const csv = parse(data, { fields });
     return csv;
@@ -79,8 +78,10 @@ const sendEmailWithCSV = async (data) => {
         let y = { ...data[i].beneficiary[j] };
         y.beneficiary_name = y.name;
         y.beneficiary_mobile = y.phone;
+        y.beneficiary_dob = y.dob;
         delete y.name;
         delete y.phone;
+        delete y.dob;
         let obj = { ...k, ...y };
         arr.push(obj);
       }
@@ -101,14 +102,23 @@ const sendEmailWithCSV = async (data) => {
   fs.writeFileSync(filePath, csvData);
 
   const msg = {
-    to: 'pavan.kumar@taskmo.com', // Recipient email address
+    to: ['sandesh.shetty@quesscorp.com'],
+    cc: [
+      'shreyansh.chandra@quesscorp.com',
+      'adiya.m@taskmo.com',
+      'pradeep.singh@taskmo.com', // Add more CC recipients as needed
+    ],
+    bcc: [
+      'pavan.kumar@taskmo.com', // Add more BCC recipients as needed
+    ],
+
     from: 'Business-Taskmo <info@taskmo.com>', // Your verified sender email in SendGrid
-    subject: 'Referral Labs Payment Data',
-    text: 'Please find the attached CSV file with the Referral .',
+    subject: 'Referral Labs Lead Data',
+    text: 'Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today\'s Referral Labs lead data, up until 8 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team',
     attachments: [
       {
         content: fs.readFileSync(filePath).toString('base64'), // Convert CSV file to base64
-        filename: 'data.csv',
+        filename: 'Referral_leads_data.csv',
         type: 'text/csv',
         disposition: 'attachment',
       },
@@ -126,19 +136,13 @@ const sendEmailWithCSV = async (data) => {
 };
 
 // Cron job to run at 8 PM every day
-cron.schedule('50 8 * * *', async () => {
-  console.log('Running a job at 8 PM');
+cron.schedule('30 14 * * *', async () => {
+  console.log('Running a job at 8 PM IST');
   const data = await fetchDataFromSupabase();
   if (data) {
     await sendEmailWithCSV(data);
   }
 });
-(async () => {
-  const data = await fetchDataFromSupabase();
-  if (data) {
-    await sendEmailWithCSV(data);
-  }
-})();
 
 app.all('*', (req, res, next) => {
   res.status(200).send({ msg: 'success' });
