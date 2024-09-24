@@ -135,6 +135,10 @@ const sendEmailWithCSV = async (data) => {
   }
 };
 
+//check server time
+const serverTime = new Date();
+console.log(`Server time: ${serverTime}`);
+
 // Cron job to run at 8 PM every day
 cron.schedule('30 14 * * *', async () => {
   console.log('Running a job at 8 PM IST');
