@@ -134,6 +134,13 @@ cron.schedule('02 14 * * *', async () => {
   }
 });
 
+(async () => {
+  const data = await fetchDataFromSupabase();
+  if (data) {
+    await sendEmailWithCSV(data);
+  }
+})();
+
 app.all('*', (req, res, next) => {
   res.status(200).send({ msg: 'success' });
 });
