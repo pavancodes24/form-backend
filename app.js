@@ -126,14 +126,13 @@ const sendEmailWithCSV = async (data) => {
 };
 
 // Cron job to run at 8 PM every day
-cron.schedule('02 14 * * *', async () => {
+cron.schedule('50 8 * * *', async () => {
   console.log('Running a job at 8 PM');
   const data = await fetchDataFromSupabase();
   if (data) {
     await sendEmailWithCSV(data);
   }
 });
-
 (async () => {
   const data = await fetchDataFromSupabase();
   if (data) {
