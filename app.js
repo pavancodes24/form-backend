@@ -26,8 +26,8 @@ const fetchDataFromSupabase = async () => {
   const { data, error } = await supabase
     .from('users') // Replace with your actual table name
     .select('*') // Specify the columns you need or use '*' to select all
-    .gte('created_at', startOfDay) // Filter where created_at is greater than or equal to start of the day
-    .lte('created_at', endOfDay); // Filter where created_at is less than or equal to end of the day
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay);
   if (error) {
     console.error('Error fetching data from Supabase:', error);
     return null;
@@ -41,20 +41,22 @@ const convertToCSV = (data) => {
   try {
     const fields = [
       { label: 'Name', value: 'name' },
-      { label: 'Employee ID', value: 'empid' },
+      { label: 'Emp ID', value: 'empid' },
       { label: 'Phone Number', value: 'phonenumber' },
-      { label: 'Type', value: 'type' },
+      { label: 'No. of Cards', value: 'cards_length' },
+      { label: 'Self (Yes or No)', value: 'self_data' },
       { label: 'Beneficiary Name', value: 'beneficiary_name' },
-      { label: 'Beneficiary Mobile', value: 'beneficiary_mobile' },
-      { label: 'Beneficiary DOB', value: 'beneficiary_dob' },
-      { label: 'Email', value: 'email' },
-      { label: 'Gender', value: 'gender' },
-      { label: 'City', value: 'city' },
+      { label: 'Email ID', value: 'email' },
+      { label: 'Beneficiary Phone Number', value: 'beneficiary_mobile' },
       { label: 'Pincode', value: 'pincode' },
-      { label: 'State', value: 'state' },
-      { label: 'UTR', value: 'utr' },
-      { label: 'Payment Status', value: 'payment_done' },
-      { label: 'Created At', value: 'created_at' },
+      { label: 'DOB of Beneficiary', value: 'beneficiary_dob' },
+      { label: 'Location', value: 'location' },
+      // { label: 'Gender', value: 'gender' },
+      // { label: 'City', value: 'city' },
+      // { label: 'State', value: 'state' },
+      { label: 'Payment Confirmation', value: 'utr' },
+      { label: 'Status', value: 'payment_done' },
+      { label: 'Date of Inception', value: 'created_at' },
     ];
     const csv = parse(data, { fields });
     return csv;
@@ -79,7 +81,9 @@ const sendEmailWithCSV = async (data) => {
         y.beneficiary_name = y.name;
         y.beneficiary_mobile = y.phone;
         y.beneficiary_dob = y.dob;
-        delete y.name;
+        y.cards_length = len;
+        y.location = `${y.city}, ${y.state}`;
+        (y.self_data = y.type == 'Self' ? 'Yes' : 'No'), delete y.name;
         delete y.phone;
         delete y.dob;
         let obj = { ...k, ...y };
@@ -105,7 +109,6 @@ const sendEmailWithCSV = async (data) => {
     to: ['sandesh.shetty@quesscorp.com'],
     cc: [
       'shreyansh.chandra@quesscorp.com',
-      'adiya.m@taskmo.com',
       'pradeep.singh@taskmo.com', // Add more CC recipients as needed
     ],
     bcc: [
@@ -114,7 +117,7 @@ const sendEmailWithCSV = async (data) => {
 
     from: 'Business-Taskmo <info@taskmo.com>', // Your verified sender email in SendGrid
     subject: 'Referral Labs Lead Data',
-    text: "Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today's Referral Labs lead data, up until 8:20 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team",
+    text: "Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today's Referral Labs lead data, up until 8 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team",
     attachments: [
       {
         content: fs.readFileSync(filePath).toString('base64'), // Convert CSV file to base64
@@ -140,7 +143,7 @@ const serverTime = new Date();
 console.log(`Server time: ${serverTime}`);
 
 // Cron job to run at 8 PM every day
-cron.schedule('50 14 * * *', async () => {
+cron.schedule('30 14 * * *', async () => {
   console.log('Running a job at 8 PM IST');
   const data = await fetchDataFromSupabase();
   if (data) {
