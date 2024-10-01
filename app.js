@@ -5,11 +5,12 @@ const sgMail = require('@sendgrid/mail');
 const { createClient } = require('@supabase/supabase-js');
 const { parse } = require('json2csv');
 const fs = require('fs'); // Add the fs module
+const moment = require('moment');
 require('dotenv').config();
 
 // Initialize Express app
 const app = express();
-
+const today = moment().format('YYYY-MM-DD');
 // Set your SendGrid API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -25,9 +26,10 @@ const fetchDataFromSupabase = async () => {
   const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString(); // End of today's date (23:59:59)
   const { data, error } = await supabase
     .from('users') // Replace with your actual table name
-    .select('*') // Specify the columns you need or use '*' to select all
-    .gte('created_at', startOfDay)
-    .lte('created_at', endOfDay);
+    .select('*')
+    .eq('payment_done', true); // Specify the columns you need or use '*' to select all
+  // .gte('created_at', startOfDay)
+  // .lte('created_at', endOfDay);
   if (error) {
     console.error('Error fetching data from Supabase:', error);
     return null;
@@ -107,17 +109,15 @@ const sendEmailWithCSV = async (data) => {
 
   const msg = {
     to: ['sandesh.shetty@quesscorp.com'],
+    // to: ['pavan.kumar@taskmo.com'],
     cc: [
       'shreyansh.chandra@quesscorp.com',
-      'pradeep.singh@taskmo.com', // Add more CC recipients as needed
+      'pradeep.singh@taskmo.com',
+      'aditya.m@taskmo.com', // Add more CC recipients as needed
     ],
-    bcc: [
-      'pavan.kumar@taskmo.com', // Add more BCC recipients as needed
-    ],
-
     from: 'Business-Taskmo <info@taskmo.com>', // Your verified sender email in SendGrid
-    subject: 'Referral Labs Lead Data',
-    text: "Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today's Referral Labs lead data, up until 8 PM today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team",
+    subject: `Referral Labs Lead Data - ${today}`,
+    text: "Dear Sandesh,\n\nI hope this message finds you well.\n\nAttached is the CSV file containing today's Referral Labs lead data, up until  today. If you have any questions or need further assistance, please feel free to reach out.\n\nThank you.\n\nBest regards,\nTaskmo Business Team",
     attachments: [
       {
         content: fs.readFileSync(filePath).toString('base64'), // Convert CSV file to base64
